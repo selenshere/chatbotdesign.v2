@@ -112,7 +112,7 @@ app.post("/api/chat", async (req, res) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+        "Authorization": `Bearer ${effectiveKey}`
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
@@ -159,7 +159,7 @@ app.post("/api/chat", async (req, res) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
+          "Authorization": `Bearer ${effectiveKey}`
         },
         body: JSON.stringify({
           model: "gpt-image-1",
