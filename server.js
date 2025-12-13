@@ -1,4 +1,5 @@
 import express from "express";
+import OpenAI from "openai";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -97,7 +98,6 @@ app.listen(PORT, () => {
 
 
 // ---- Image generation helper (gpt-image-1-mini) ----
-import OpenAI from "openai";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 async function generateMathImage(prompt) {
