@@ -90,7 +90,10 @@ Theme: Use simple, child-like language that may sound uncertain or inconsistent.
 app.post("/api/chat", async (req, res) => {
   const { apiKey, messages } = req.body || {};
 
-  if (!apiKey || typeof apiKey !== "string") {
+  const effectiveKey =
+  (apiKey && typeof apiKey === "string" ? apiKey : process.env.OPENAI_API_KEY);
+
+  if (!effectiveKey) {
     return res.status(400).json({ reply: "Missing API key.", image: null });
   }
   if (!Array.isArray(messages)) {
