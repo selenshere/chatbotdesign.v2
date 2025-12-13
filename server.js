@@ -1,8 +1,38 @@
 import express from "express";
-import OpenAI from "openai";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ---- Image generation helper (no SDK; uses fetch to OpenAI Images API) ----
+// Requires env var: OPENAI_API_KEY
+async function generateMathImage(prompt) {
+  const resp = await fetch("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-image-1-mini",
+      prompt,
+      size: "512x512",
+      // Return base64 to avoid needing to host files:
+      response_format: "b64_json",
+    }),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => "");
+    throw new Error(`Image API error ${resp.status}: ${text}`);
+  }
+
+  const data = await resp.json();
+  const b64 = data?.data?.[0]?.b64_json;
+  if (!b64) throw new Error("Image API returned no image data");
+  return `data:image/png;base64,${b64}`;
+}
+
+
 
 // ---- Middleware ----
 app.use(express.json({ limit: "1mb" }));
@@ -95,16 +125,3 @@ app.get("*", (_req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
-
-// ---- Image generation helper (gpt-image-1-mini) ----
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-async function generateMathImage(prompt) {
-  const img = await openai.images.generate({
-    model: "gpt-image-1-mini",
-    prompt,
-    size: "512x512"
-  });
-  return img.data[0].url;
-}
