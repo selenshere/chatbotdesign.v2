@@ -129,13 +129,57 @@ function el(tag, cls, text){
   return e;
 }
 
+
+// --- Mermaid diagram rendering (for ```mermaid ... ``` blocks) ---
+// Requires mermaid loaded in index.html.
+function renderMessageContent(container, text){
+  // Split by mermaid fenced blocks
+  const parts = text.split(/```mermaid\s*([\s\S]*?)```/g);
+  // parts: [plain0, mermaid1, plain2, mermaid3, ...]
+  for (let i=0;i<parts.length;i++){
+    const chunk = parts[i];
+    if (!chunk) continue;
+    if (i % 2 === 1){
+      // Mermaid code
+      const code = chunk.trim();
+      const merDiv = document.createElement("div");
+      merDiv.className = "mermaid";
+      merDiv.textContent = code;
+      container.appendChild(merDiv);
+    } else {
+      // Plain text: preserve line breaks
+      const p = document.createElement("div");
+      p.className = "msg-text";
+      p.textContent = chunk;
+      container.appendChild(p);
+    }
+  }
+}
+
+async function renderMermaidIn(container){
+  if (!window.mermaid) return;
+  try{
+    // mermaid.run renders all .mermaid elements (v10+)
+    if (typeof window.mermaid.run === "function"){
+      await window.mermaid.run({ querySelector: (sel)=>container.querySelectorAll(sel) });
+    } else if (typeof window.mermaid.init === "function"){
+      window.mermaid.init(undefined, container.querySelectorAll(".mermaid"));
+    }
+  } catch(e){
+    console.warn("Mermaid render failed", e);
+  }
+}
+
 function renderChat(){
   chatLog.innerHTML = "";
   const teacherLabel = (state.name?.firstName || "Teacher");
 
   for (const m of state.messages) {
     const bubble = el("div", `bubble ${m.who==="teacher" ? "user" : "taylor"}`);
-    bubble.textContent = m.text;
+    bubble.innerHTML = '';
+    renderMessageContent(bubble, m.text);
+    // render diagrams after insertion
+    setTimeout(()=>renderMermaidIn(bubble), 0);
 
     const meta = el("div", "meta");
     meta.appendChild(el("span","", m.who==="teacher" ? teacherLabel : "Taylor"));

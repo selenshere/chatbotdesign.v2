@@ -3,37 +3,6 @@ import express from "express";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ---- Image generation helper (no SDK; uses fetch to OpenAI Images API) ----
-// Requires env var: OPENAI_API_KEY
-async function generateMathImage(prompt) {
-  const resp = await fetch("https://api.openai.com/v1/images/generations", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-image-1-mini",
-      prompt,
-      size: "512x512",
-      // Return base64 to avoid needing to host files:
-      response_format: "b64_json",
-    }),
-  });
-
-  if (!resp.ok) {
-    const text = await resp.text().catch(() => "");
-    throw new Error(`Image API error ${resp.status}: ${text}`);
-  }
-
-  const data = await resp.json();
-  const b64 = data?.data?.[0]?.b64_json;
-  if (!b64) throw new Error("Image API returned no image data");
-  return `data:image/png;base64,${b64}`;
-}
-
-
-
 // ---- Middleware ----
 app.use(express.json({ limit: "1mb" }));
 
@@ -87,7 +56,7 @@ app.post("/api/chat", rateLimit, async (req, res) => {
     const { messages } = req.body || {};
     if (!Array.isArray(messages) || messages.length === 0) return res.status(400).send("Missing messages array.");
 
-    const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+    const model = process.env.OPENAI_MODEL || "gpt-3.5-turbo";
 
     const upstream = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

@@ -214,3 +214,8 @@ input[type="text"]:focus{border-color:rgba(37,99,235,.45)}
 @media (max-width: 980px){
   .welcomeGrid{ grid-template-columns: 1fr; }
 }
+
+
+/* Mermaid diagrams */
+.bubble .mermaid{ margin-top: 8px; }
+.bubble .msg-text{ white-space: pre-wrap; }
